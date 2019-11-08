@@ -1,0 +1,107 @@
+//setting up inputs slide 24
+
+setupWebInput();
+
+function setupWebInput() {
+    let choices = document.getElementsByClassName("choice");
+    let cat = document.getElementById("cat");
+    let elephant = document.getElementById("elephant");
+    cat.addEventListener("click", userPick);
+    elephant.addEventListener("click", userPick);
+    for (let i = 0; i < choices.length; i++) {
+        choices[i].addEventListener("click", userPick);
+    }
+}
+
+___________________________________________________________________
+
+//user interaction - slide 25
+
+function userPick(evt) {
+    let userChoice;
+    userChoice = this.id;
+    playGame(userChoice);
+}
+
+_______________________________________________________________
+
+//game logic - slide 26
+
+function playGame(userChoice) {
+    let answers = ["rock", "paper", "scissors", "cat"];
+    let gameAnswer;
+    let result="";
+    let catState = -1; // Indicates not cat selected
+    if (! answers.includes(userChoice)) {
+        gameAnswer = `You picked ${userChoice}, this is not a valid choice, please try again`;
+    } else {
+        let computerChoice = answers[Math.floor(Math.random() * 4)];
+        console.log(computerChoice);
+        if (userChoice === computerChoice) {
+            result = "it's a draw!"
+        } else if ((userChoice === "cat") || (computerChoice ==="cat")) {
+                
+            catState = Math.floor(Math.random() * 2);
+            console.log(catState);
+            
+            if (userChoice === "cat") {
+                if (catState === 0) {
+                    result = "The cat is angry! The computer wins!";
+                } else {
+                    result = "The cat is happy! You win!";
+                }
+            } else {
+                if (catState === 0) {
+                    result = "The cat is angry! You win!";
+                } else {
+                    result = "The cat is happy! The computer wins!";
+                }
+            }
+        } else if (userChoice === "rock") {
+            if (computerChoice === "scissors") {
+                result ="You win, as rock blunts scissors!";
+            } else {
+                result = "The computer wins, as paper wraps rock!";
+            }
+        } else if (userChoice === "paper") {
+            if (computerChoice === "rock") {
+                result = "You win, as paper wraps rock!!";
+            } else {
+                result = "The computer wins, as scissors cuts paper!";
+            }
+        } else if (userChoice === "scissors") {
+            if (computerChoice === "paper") {
+                result = "You win, as scissors cuts paper!!";
+            } else {
+                result = "The computer wins, as rock blunts scissors!!";
+            }
+        } 
+        gameAnswer = `You picked ${userChoice} , computer picked ${computerChoice}. ${result}`;
+    }
+    return displayOutput(gameAnswer,catState);
+}
+
+_________________________________________________________________________________________
+
+//output - slide 27
+
+function displayOutput(gameAnswer, catState) {
+    // web only - all things to do with myAudio
+    if (catState !== -1) {
+        let myAudio = document.getElementById("myAudio"); //web only audio
+        let myCatAudio = "";
+
+        if (catState === 1) {
+            myCatAudio = "Catmeow1.mp3";
+        } else if (catState === 0) {
+            myCatAudio = "AngryCat.mp3";
+        }
+        myAudio.src = myCatAudio;
+        myAudio.addEventListener("canplaythrough", function () { myAudio.play() });
+    }
+    //web only output to screen
+    let winner = document.getElementById("winner");
+    winner.innerHTML = gameAnswer;
+}
+
+
