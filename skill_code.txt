@@ -1,0 +1,194 @@
+const Alexa = require('ask-sdk-core');
+
+const LaunchRequestHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+    },
+    handle(handlerInput) {
+        const speechText = "Welcome to my rock paper scissors cat game, please make your choice";
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt('Try rock, paper, scissors or cat')
+            .getResponse();
+    }
+};
+const UserPickIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'UserPickIntent';
+    },
+    handle(handlerInput) {
+        let userChoice = handlerInput.requestEnvelope.request.intent.slots.userChoice.value;
+         const speechText = playGame(userChoice);
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt('Try rock, paper, scissors or cat')
+            .getResponse();
+    }
+};
+
+const HelpIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+    },
+    handle(handlerInput) {
+        const speechText = 'You can say hello to me! How can I help?';
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+const CancelAndStopIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.CancelIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
+    },
+    handle(handlerInput) {
+        const speechText = 'Goodbye!';
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .getResponse();
+    }
+};
+const SessionEndedRequestHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+    },
+    handle(handlerInput) {
+        // Any cleanup logic goes here.
+        return handlerInput.responseBuilder.getResponse();
+    }
+};
+
+// The intent reflector is used for interaction model testing and debugging.
+// It will simply repeat the intent the user said. You can create custom handlers
+// for your intents by defining them above, then also adding them to the request
+// handler chain below.
+const IntentReflectorHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest';
+    },
+    handle(handlerInput) {
+        const intentName = handlerInput.requestEnvelope.request.intent.name;
+        const speechText = `You just triggered ${intentName}`;
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+};
+
+// Generic error handling to capture any syntax or routing errors. If you receive an error
+// stating the request handler chain is not found, you have not implemented a handler for
+// the intent being invoked or included it in the skill builder below.
+const ErrorHandler = {
+    canHandle() {
+        return true;
+    },
+    handle(handlerInput, error) {
+        console.log(`~~~~ Error handled: ${error.message}`);
+        const speechText = `Sorry, I couldn't understand what you said. Please try again.`;
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
+function playGame(userChoice) {
+    let answers = ["rock", "paper", "scissors", "cat"];
+    let gameAnswer;
+    let result="";
+    let catState = -1; // Indicates not cat selected
+    if (! answers.includes(userChoice)) {
+        gameAnswer = `You picked ${userChoice}, this is not a valid choice, please try again`;
+    } else {
+        let computerChoice = answers[Math.floor(Math.random() * 4)];
+        console.log(computerChoice);
+        if (userChoice === computerChoice) {
+            result = "it's a draw!"
+        } else if ((userChoice === "cat") || (computerChoice ==="cat")) {
+                
+            catState = Math.floor(Math.random() * 2);
+            console.log(catState);
+            
+            if (userChoice === "cat") {
+                if (catState === 0) {
+                    result = "The cat is angry! The computer wins!";
+                } else {
+                    result = "The cat is happy! You win!";
+                }
+            } else {
+                if (catState === 0) {
+                    result = "The cat is angry! You win!";
+                } else {
+                    result = "The cat is happy! The computer wins!";
+                }
+            }
+        } else if (userChoice === "rock") {
+            if (computerChoice === "scissors") {
+                result ="You win, as rock blunts scissors!";
+            } else {
+                result = "The computer wins, as paper wraps rock!";
+            }
+        } else if (userChoice === "paper") {
+            if (computerChoice === "rock") {
+                result = "You win, as paper wraps rock!!";
+            } else {
+                result = "The computer wins, as scissors cuts paper!";
+            }
+        } else if (userChoice === "scissors") {
+            if (computerChoice === "paper") {
+                result = "You win, as scissors cuts paper!!";
+            } else {
+                result = "The computer wins, as rock blunts scissors!!";
+            }
+        } 
+        gameAnswer = `You picked ${userChoice} , computer picked ${computerChoice}. ${result}`;
+    }
+    return displayOutput(gameAnswer,catState);
+}
+
+function displayOutput(gameAnswer,catState)
+{
+    //For web site
+         let catSound = "";
+    if (catState !== -1) {
+   
+       if (catState === 0) {
+            catSound = "<audio src='soundbank://soundlibrary/animals/amzn_sfx_cat_angry_meow_1x_01'/>";
+        } else {
+            catSound = "<audio src='soundbank://soundlibrary/animals/amzn_sfx_cat_meow_1x_01'/><audio src='soundbank://soundlibrary/animals/amzn_sfx_cat_meow_1x_02'/>";
+        }
+        //let myAudio = document.getElementById("myAudio");
+        //myAudio.addEventListener("canplaythrough", function(){myAudio.play()});
+       // myAudio.src = catSound;
+       
+    }
+    //document.getElementById("winner").innerHTML = gameAnswer;
+     return "<speak>" + catSound + gameAnswer + "</speak>";
+
+}
+
+
+
+// This handler acts as the entry point for your skill, routing all request and response
+// payloads to the handlers above. Make sure any new handlers or interceptors you've
+// defined are included below. The order matters - they're processed top to bottom.
+exports.handler = Alexa.SkillBuilders.custom()
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        UserPickIntentHandler,
+        HelpIntentHandler,
+        CancelAndStopIntentHandler,
+        SessionEndedRequestHandler,
+        IntentReflectorHandler) // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
+    .addErrorHandlers(
+        ErrorHandler)
+    .lambda();
